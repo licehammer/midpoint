@@ -65,14 +65,12 @@ public class TestTypeDerivation extends AbstractReactorTest {
     public void axiomData() throws AxiomSyntaxException, FileNotFoundException, IOException {
         AxiomSchemaContext context = loadModel();
         AxiomAntlrStatementSource stream = dataSource(JOHN_DOE_FILE);
-        AxiomItemTarget target = new AxiomItemTarget(context, AxiomIdentifierResolver.defaultNamespace(DERIVED_PERSON.namespace()));
+        AxiomItemTarget<AxiomValue<?>> target = new AxiomItemTarget(context, AxiomIdentifierResolver.defaultNamespace(DERIVED_PERSON.namespace()));
         stream.stream(target);
         AxiomItem<?> root = target.get();
         assertEquals(root.name(), DERIVED_PERSON.localName("person"));
         AxiomComplexValue person = root.onlyValue().asComplex().get();
         assertEquals(person.item(NAME).get().onlyValue().value(), "John Doe");
         assertEquals(person.item(FIRST_NAME).get().onlyValue().value(), "John");
-
-
     }
 }

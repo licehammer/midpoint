@@ -4,8 +4,8 @@ import java.util.Collection;
 
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 
-public interface AxiomItemFactory<V> {
+public interface AxiomItemFactory<V extends AxiomValue<?>> {
 
-    AxiomItem<V> create(AxiomItemDefinition def, Collection<? extends AxiomValue<?>> axiomItem);
+    AxiomItem<V> create(AxiomItemDefinition def, Collection<? extends V> axiomItem);
 
 }

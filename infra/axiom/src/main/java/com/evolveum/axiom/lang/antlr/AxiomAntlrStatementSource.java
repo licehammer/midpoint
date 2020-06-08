@@ -17,46 +17,47 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.stream.AxiomItemStream;
+import com.evolveum.axiom.lang.antlr.AxiomParser.DataItemContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ItemContext;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
 public class AxiomAntlrStatementSource {
 
-    private final ItemContext root;
+    private final DataItemContext root;
     private final String sourceName;
+
+    protected AxiomAntlrStatementSource(String sourceName, DataItemContext statement) {
+        this.sourceName = sourceName;
+        this.root = statement;
+    }
 
     public static AxiomAntlrStatementSource from(String sourceName, InputStream stream) throws IOException, AxiomSyntaxException {
         return from(sourceName, CharStreams.fromStream(stream));
     }
 
-    public static ItemContext contextFrom(String sourceName, CharStream stream) {
+    public static DataItemContext contextFrom(String sourceName, CharStream stream) {
         AxiomLexer lexer = new AxiomLexer(stream);
         AxiomParser parser = new AxiomParser(new CommonTokenStream(lexer));
         lexer.removeErrorListeners();
         parser.removeErrorListeners();
         AxiomErrorListener errorListener = new AxiomErrorListener(sourceName);
         parser.addErrorListener(errorListener);
-        ItemContext statement = parser.item();
+        DataItemContext statement = parser.dataItem();
         errorListener.validate();
         return statement;
     }
 
     public static AxiomAntlrStatementSource from(String sourceName, CharStream stream) throws AxiomSyntaxException {
-        ItemContext statement = contextFrom(sourceName, stream);
+        DataItemContext statement = contextFrom(sourceName, stream);
         return new AxiomAntlrStatementSource(sourceName, statement);
-    }
-
-    protected AxiomAntlrStatementSource(String sourceName, ItemContext statement) {
-        this.sourceName = sourceName;
-        this.root = statement;
     }
 
     public String sourceName() {
         return sourceName;
     }
 
-    protected final ItemContext root() {
+    protected final DataItemContext root() {
         return root;
     }
 

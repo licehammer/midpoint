@@ -20,10 +20,10 @@ STRING_DOUBLEQUOTE: DQOUTE ((ESC DQOUTE) | ~[\n"])* DQOUTE;
 //statement : SEP* identifier SEP* (argument)? SEP* (SEMICOLON | LEFT_BRACE SEP* (statement)* SEP* RIGHT_BRACE SEP*) SEP*;
 
 
-itemBody: identifier SEP* value;
-item : SEP* itemBody; 
-value: (argument)? SEP* (SEMICOLON | LEFT_BRACE SEP* (item | metadata)* SEP* RIGHT_BRACE SEP*) SEP*;
-metadata : SEP* '@' itemBody;
+item: identifier SEP* value;
+dataItem : SEP* item; 
+infraItem : SEP* '@' item;
+value: (argument)? SEP* (SEMICOLON | LEFT_BRACE SEP* (dataItem | infraItem)* SEP* RIGHT_BRACE SEP*) SEP*;
 
 identifier : (prefix COLON)? localIdentifier;
 prefix : IDENTIFIER;

@@ -5,22 +5,22 @@ import java.util.Collection;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.google.common.collect.ImmutableList;
 
-class AxiomItemImpl<V> extends AbstractAxiomItem<V> {
+class AxiomItemImpl<T extends AxiomValue<?>> extends AbstractAxiomItem<T> {
 
-    Collection<AxiomValue<V>> values;
+    Collection<T> values;
 
 
-    private AxiomItemImpl(AxiomItemDefinition definition, Collection<? extends AxiomValue<V>> val) {
+    private AxiomItemImpl(AxiomItemDefinition definition, Collection<? extends T> val) {
         super(definition);
         this.values = ImmutableList.copyOf(val);
     }
 
-    static <V> AxiomItem<V> from(AxiomItemDefinition definition, Collection<? extends AxiomValue<V>> values) {
+    static <T extends AxiomValue<?>> AxiomItem<T> from(AxiomItemDefinition definition, Collection<? extends T> values) {
         return new AxiomItemImpl<>(definition, values);
     }
 
     @Override
-    public Collection<AxiomValue<V>> values() {
+    public Collection<T> values() {
         return values;
     }
 

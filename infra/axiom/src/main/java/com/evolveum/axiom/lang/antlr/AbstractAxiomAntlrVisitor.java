@@ -15,10 +15,10 @@ import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.stream.AxiomItemStream;
 import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ArgumentContext;
+import com.evolveum.axiom.lang.antlr.AxiomParser.DataItemContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.IdentifierContext;
-import com.evolveum.axiom.lang.antlr.AxiomParser.ItemBodyContext;
+import com.evolveum.axiom.lang.antlr.AxiomParser.InfraItemContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ItemContext;
-import com.evolveum.axiom.lang.antlr.AxiomParser.MetadataContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StringContext;
 
 public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
@@ -56,12 +56,19 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
 
 
     @Override
-    public T visitItem(ItemContext ctx) {
-        AxiomName identifier = statementIdentifier(ctx.itemBody().identifier());
-        return processItemBody(identifier, ctx.itemBody(), delegate()::startItem, delegate()::endItem);
+    public T visitDataItem(DataItemContext ctx) {
+        AxiomName identifier = statementIdentifier(ctx.item().identifier());
+        return processItemBody(identifier, ctx.item(), delegate()::startItem, delegate()::endItem);
     }
 
-    public T processItemBody(AxiomName identifier, ItemBodyContext ctx, StartDelegate start, EndDelegate end) {
+
+    @Override
+    public T visitInfraItem(InfraItemContext ctx) {
+        AxiomName identifier = statementIdentifier(ctx.item().identifier());
+        return processItemBody(identifier, ctx.item(), delegate()::startMetadata, delegate()::endMetadata);
+    }
+
+    public T processItemBody(AxiomName identifier, ItemContext ctx, StartDelegate start, EndDelegate end) {
         if(canEmit(identifier)) {
 
             SourceLocation startLoc = sourceLocation(ctx.identifier().start);
@@ -80,7 +87,7 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
             }
 
             delegate().startValue(value, valueStart);
-            T ret = visitItemBody(ctx);
+            T ret = visitItem(ctx);
             delegate().endValue(sourceLocation(ctx.stop));
             end.end(sourceLocation(ctx.stop));
             return ret;
@@ -89,11 +96,6 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     }
 
 
-    @Override
-    public T visitMetadata(MetadataContext ctx) {
-        AxiomName identifier = statementIdentifier(ctx.itemBody().identifier());
-        return processItemBody(identifier, ctx.itemBody(), delegate()::startMetadata, delegate()::endMetadata);
-    }
 
     private Object convert(ArgumentContext ctx) {
         if (ctx.identifier() != null) {

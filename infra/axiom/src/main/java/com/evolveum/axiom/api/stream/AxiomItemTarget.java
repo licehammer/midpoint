@@ -7,27 +7,32 @@ import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomItemBuilder;
 import com.evolveum.axiom.api.AxiomValue;
+import com.evolveum.axiom.api.AxiomValue.InfraFactory;
 import com.evolveum.axiom.api.AxiomValueBuilder;
+import com.evolveum.axiom.api.AxiomValueFactory;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
+import com.google.common.base.Preconditions;
 
-public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplier<AxiomItem<?>>, AxiomItemStream.TargetWithResolver {
+public class AxiomItemTarget<T extends AxiomValue<?>> extends AxiomBuilderStreamTarget implements Supplier<AxiomItem<T>>, AxiomItemStream.TargetWithResolver {
 
     private final AxiomSchemaContext context;
     private final AxiomIdentifierResolver resolver;
-    private Item<?> result;
+    private final AxiomValue.InfraFactory<?, T> factory;
+    private Item<T> result;
 
-    public AxiomItemTarget(AxiomSchemaContext context, AxiomIdentifierResolver resolver) {
+    public AxiomItemTarget(AxiomSchemaContext context, AxiomIdentifierResolver resolver, AxiomValue.InfraFactory<?, T> factory) {
         offer(new Root());
         this.context = context;
         this.resolver = resolver;
+        this.factory = factory;
     }
 
     @Override
-    public AxiomItem<?> get() {
+    public AxiomItem<T> get() {
         return result.get();
     }
 
@@ -55,6 +60,7 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
 
         @Override
         public ItemBuilder startItem(AxiomName identifier, SourceLocation loc) {
+            Preconditions.checkState(result == null, "Only one root item supported");
             result = new Item<>(childDef(identifier).get());
             return result;
         }
@@ -66,7 +72,7 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
 
     }
 
-    private final class Item<V> implements ItemBuilder, Supplier<AxiomItem<V>> {
+    private final class Item<V extends AxiomValue<?>> implements ItemBuilder, Supplier<AxiomItem<V>> {
 
         private AxiomItemBuilder<V> builder;
 
@@ -91,7 +97,7 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
 
         @Override
         public ValueBuilder startValue(Object value, SourceLocation loc) {
-            Value<V> newValue = new Value<>((V) value, builder.definition().typeDefinition());
+            Value<V,T> newValue = new Value<>((V) value, builder.definition().typeDefinition(), factory);
             builder.addValue(newValue);
             return newValue;
         }
@@ -109,12 +115,12 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
 
     }
 
-    private final class Value<V> implements ValueBuilder, Supplier<AxiomValue<V>> {
+    private final class Value<V, T extends AxiomValue<V>> implements ValueBuilder, Supplier<T> {
 
-        private final AxiomValueBuilder<V, ?> builder;
+        private final AxiomValueBuilder<V, T> builder;
 
-        public Value(V value, AxiomTypeDefinition type) {
-            builder = AxiomValueBuilder.from(type);
+        public Value(V value, AxiomTypeDefinition type, InfraFactory<V,T> factory) {
+            builder = AxiomValueBuilder.from(type, factory);
             builder.setValue(value);
             if(value != null && type.argument().isPresent()) {
                 AxiomItemDefinition argument = type.argument().get();
@@ -158,7 +164,7 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
-        public AxiomValue<V> get() {
+        public T get() {
             return builder.get();
         }
 

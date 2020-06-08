@@ -21,7 +21,7 @@ public interface AxiomComplexValue extends AxiomValue<Collection<AxiomItem<?>>> 
     }
 
     @SuppressWarnings("unchecked")
-    default <T> Optional<AxiomItem<T>> item(AxiomName name) {
+    default <T extends AxiomValue<?>> Optional<AxiomItem<T>> item(AxiomName name) {
         return Optional.ofNullable((AxiomItem<T>) itemMap().get(name));
     }
 

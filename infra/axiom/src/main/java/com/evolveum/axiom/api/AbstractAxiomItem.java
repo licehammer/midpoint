@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 
-public abstract class AbstractAxiomItem<V> implements AxiomItem<V> {
+public abstract class AbstractAxiomItem<T extends AxiomValue<?>> implements AxiomItem<T> {
 
 
     private final AxiomItemDefinition definition;
