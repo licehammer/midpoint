@@ -592,7 +592,7 @@ public class BasicExpressionFunctions {
         if (value == null) {
             return emptySet();
         } else {
-            ItemPath itemPath = ItemPath.create(ValueMetadataType.F_EXTENSION, itemLocalPart);
+            ItemPath itemPath = ItemPath.create(ValueMetadataType.F_EXTENSION, itemLocalPart.split("/"));
             return value.getValueMetadataAsContainer().valuesStream()
                     .map(md -> md.findItem(itemPath))
                     .filter(Objects::nonNull)
